@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { updateSettings } from "../../../state/settings/actions";
-import { Checkbox, PopUp, Text, TextField } from "../../ui";
+import { Button, Checkbox, PopUp, Text, TextField } from "../../ui";
 import { Row } from "../Form";
 
 const CLEAN_UP = [
@@ -65,21 +65,23 @@ function CustomCleanUp({ hours }: { hours: number }) {
     setDraft((current) => (durationHours(current.amount, current.unit) === hours ? current : durationParts(hours)));
   }, [hours]);
   const value = durationHours(draft.amount, draft.unit);
+  const canApply = value !== null && value !== hours;
   const commit = () => {
-    if (value !== null) updateSettings({ cleanUpInactiveTabsAfterHours: value });
+    if (canApply) updateSettings({ cleanUpInactiveTabsAfterHours: value });
   };
   const changeUnit = (unit: Unit) => {
     setDraft((current) => ({ ...current, unit }));
-    const next = durationHours(draft.amount, unit);
-    if (next !== null) updateSettings({ cleanUpInactiveTabsAfterHours: next });
   };
   return (
     <View style={{ gap: 6, width: 190 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <TextField value={draft.amount} onChangeText={(amount) => setDraft((current) => ({ ...current, amount }))} onSubmit={commit} onBlur={commit} selectOnFocus style={{ width: 72 }} />
+        <TextField value={draft.amount} onChangeText={(amount) => setDraft((current) => ({ ...current, amount }))} onSubmit={commit} selectOnFocus style={{ width: 72 }} />
         <PopUp value={draft.unit} options={[...UNITS]} onChange={changeUnit} minWidth={110} />
       </View>
       {value === null && <Text size="footnote" tone="destructive">Enter a whole number greater than zero.</Text>}
+      <View style={{ alignItems: "flex-end" }}>
+        <Button title="Apply" disabled={!canApply} onPress={commit} />
+      </View>
     </View>
   );
 }
